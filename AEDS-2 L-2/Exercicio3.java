@@ -11,147 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-class Celula {
-	public Pokemon elemento = new Pokemon();
-	public Celula prox; 
-
-	public Celula() {
-		this(null);
-	}
-
-	public Celula(Pokemon elemento) {
-      this.elemento = elemento;
-      this.prox = null;
-	}
-}
-
-class Lista {
-	private Celula primeiro;
-	private Celula ultimo;
-
-
-	public Lista() {
-		primeiro = new Celula();
-		ultimo = primeiro;
-	}
-
-	public void inserirInicio(Pokemon pokemon) {
-	  Celula tmp = new Celula(pokemon);
-      tmp.prox = primeiro.prox;
-		primeiro.prox = tmp;
-		if (primeiro == ultimo) {                 
-			ultimo = tmp;
-		}
-      tmp = null;
-	}
-
-	public void inserirFim(Pokemon pokemon) {
-		ultimo.prox = new Celula(pokemon);
-		ultimo = ultimo.prox;
-	}
-
-	public Pokemon removerInicio() throws Exception {
-		if (primeiro == ultimo) {
-			throw new Exception("Erro ao remover (vazia)!");
-		}
-
-      Celula tmp = primeiro;
-		primeiro = primeiro.prox;
-		Pokemon resp = primeiro.elemento;
-      tmp.prox = null;
-      tmp = null;
-		return resp;
-	}
-
-	public Pokemon removerFim() throws Exception {
-		if (primeiro == ultimo) {
-			throw new Exception("Erro ao remover (vazia)!");
-		} 
-
-      Celula i;
-      for(i = primeiro; i.prox != ultimo; i = i.prox);
-
-      Pokemon resp = ultimo.elemento; 
-      ultimo = i; 
-      i = ultimo.prox = null;
-      
-		return resp;
-	}
-
-   public void inserir(Pokemon pokemon, int pos) throws Exception {
-
-      int tamanho = tamanho();
-
-      if(pos < 0 || pos > tamanho){
-			throw new Exception("Erro ao inserir posicao (" + pos + " / tamanho = " + tamanho + ") invalida!");
-      } else if (pos == 0){
-         inserirInicio(pokemon);
-      } else if (pos == tamanho){
-         inserirFim(pokemon);
-      } else {
-         Celula i = primeiro;
-         for(int j = 0; j < pos; j++, i = i.prox);
-		
-         Celula tmp = new Celula(pokemon);
-         tmp.prox = i.prox;
-         i.prox = tmp;
-         tmp = i = null;
-      }
-   }
-
-	public Pokemon remover(int pos) throws Exception {
-      Pokemon resp;
-      int tamanho = tamanho();
-
-		if (primeiro == ultimo){
-			throw new Exception("Erro ao remover (vazia)!");
-
-      } else if(pos < 0 || pos >= tamanho){
-			throw new Exception("Erro ao remover (posicao " + pos + " / " + tamanho + " invalida!");
-      } else if (pos == 0){
-         resp = removerInicio();
-      } else if (pos == tamanho - 1){
-         resp = removerFim();
-      } else {
-         Celula i = primeiro;
-         for(int j = 0; j < pos; j++, i = i.prox);
-		
-         Celula tmp = i.prox;
-         resp = tmp.elemento;
-         i.prox = tmp.prox;
-         tmp.prox = null;
-         i = tmp = null;
-      }
-
-		return resp;
-	}
-
-	public void mostrar() {
-		System.out.print("[ ");
-		for (Celula i = primeiro.prox; i != null; i = i.prox) {
-			System.out.print(i.elemento + " ");
-		}
-		System.out.println("] ");
-	}
-
-	public boolean pesquisar(int x) {
-		boolean resp = false;
-		for (Celula i = primeiro.prox; i != null; i = i.prox) {
-         if(i.elemento == x){
-            resp = true;
-            i = ultimo;
-         }
-		}
-		return resp;
-	}
-
-   public int tamanho() {
-      int tamanho = 0; 
-      for(Celula i = primeiro; i != ultimo; i = i.prox, tamanho++);
-      return tamanho;
-   }
-}
-
 class Pokemon {
     private String id;
     private int generation;
@@ -232,9 +91,9 @@ class Pokemon {
         return LocalDate.parse(dateStr, dateFormatter);
     }
 
-    public void imprimir(int index) {
+    public void imprimir() {
         DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        System.out.printf("[%d][#%s -> %s: %s - [", index, getId(), getName(), getDescription());
+        System.out.printf("[#%s -> %s: %s - [", getId(), getName(), getDescription());
 
         for (int i = 0; i < getTypes().length; i++) {
             if (i > 0) System.out.print(", ");
@@ -255,10 +114,12 @@ class Pokemon {
     }
 }
 
-public class TP3Exercicio1 {
+public class Exercicio3 {
+    private static int comparacoes = 0;
     public static void main(String[] args) {
-        Lista pokedexList = new Lista();
+        List<Pokemon> pokedexList = new ArrayList<>();
         Scanner inputScanner = new Scanner(System.in);
+        Instant start = Instant.now();
 
         while (true) {
             String idInput = inputScanner.nextLine().trim();
@@ -268,61 +129,43 @@ public class TP3Exercicio1 {
 
             Pokemon pokemon = buscarPokemonPorID(idInput);
             if (pokemon != null) {
-                pokedexList.inserirFim(pokemon);
+                pokedexList.add(pokemon);
             } else {
                 System.out.println("Pokémon com ID " + idInput + " não encontrado.");
             }
         }
 
-        String idInput = inputScanner.nextLine().trim();
-        for(int i = 0; i < idInput; i++){
-            String idInput = inputScanner.nextLine().trim();
-            if(idInput.charAt(0) == 'I'){
+        while (true) {
+            String nameInput = inputScanner.nextLine().trim();
+            if (nameInput.equalsIgnoreCase("FIM")) {
+                break;
+            }
 
-                if(idInput.charAt(1) == 'I'){
-                    String [] id = idInput.split(" ", 2);
-                    Pokemon pokemon = buscarPokemonPorID(id[1]);
-                    pokedexList.inserirInicio(pokemon);
-                }
-                else if(idInput.charAt(1) == 'F'){
-                    String [] id = idInput.split(" ", 2);
-                    Pokemon pokemon = buscarPokemonPorID(id[1]);
-                    pokedexList.inserirFim(pokemon);
-                }
-                else if(idInput.charAt(1) == '*'){ 
-                    String [] id = idInput.split(" ", 3);
-                    Pokemon pokemon = buscarPokemonPorID(id[1]);
-                    pokedexList.inserir(pokemon, id[2]);
+            boolean isFound = false;
+            for (Pokemon pokemon : pokedexList) {
+                comparacoes++;
+                if (pokemon.getName().equalsIgnoreCase(nameInput)) {
+                    System.out.println("SIM");
+                    isFound = true;
+                    break;
                 }
             }
 
-            else if(idInput.charAt(0) == 'R'){
-
-                if(idInput.charAt(1) == 'I'){
-                    String [] id = idInput.split(" ", 2);
-                    Pokemon pokemon = buscarPokemonPorID(id[1]);
-                    Pokemon removido = pokedexList.removerInicio(pokemon);
-                    String nome = removido.getName();
-                    System.out.println("(R) " + nome); 
-                }
-                else if(idInput.charAt(1) == 'F'){
-                    String [] id = idInput.split(" ", 2);
-                    Pokemon pokemon = buscarPokemonPorID(id[1]);
-                    Pokemon removido = pokedexList.removerFim(pokemon);
-                }
-                else if(idInput.charAt(1) == '*'){ 
-                    String [] id = idInput.split(" ", 3);
-                    Pokemon pokemon = buscarPokemonPorID(id[1]);
-                    Pokemon removido = pokedexList.remover(pokemon, id[2]);
-                }
+            if (!isFound) {
+                System.out.println("NAO");
             }
         }
-        int index = 0;
-        for (Pokemon pokemon : pokedexList) {
-            pokemon.imprimir(index);
-            index++;
+        Instant end = Instant.now();
+        long tempoExecucao = Duration.between(start, end).toMillis();
+        
+        String matricula = "1448840";
+        String nomeArquivo = matricula + "_sequencial.txt";
+        
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(nomeArquivo))) {
+            writer.write(matricula + "\t" + tempoExecucao + "ms\t" + comparacoes);
+        } catch (IOException e) {
+            System.err.println("Erro ao gravar o arquivo de log: " + e.getMessage());
         }
-
         inputScanner.close();   
     }
 
