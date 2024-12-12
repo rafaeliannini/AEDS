@@ -36,87 +36,132 @@ class ArvoreAlvinegra {
         raiz = null;
     }
 
-    public void inserir(Pokemon pokemon) throws Exception {
-        raiz = inserir(pokemon, null, null, raiz);
-        if (raiz != null) {
-            raiz.cor = false; 
-        }
-    }
+    public void inserir(Pokemon elemento) {
+        if (raiz == null) {
+            raiz = new No(elemento);
+        } else if (raiz.dir == null && raiz.esq == null) {
+            if (compare(elemento, raiz.elemento) < 0) {
+                raiz.esq = new No(elemento);
+            } else {
+                raiz.dir = new No(elemento);
+            }
+        } else if (raiz.esq == null) {
+            if (compare(elemento, raiz.elemento) < 0) {
+                raiz.esq = new No(elemento);
+            } else if (compare(elemento, raiz.dir.elemento) < 0) {
+                raiz.esq = new No(raiz.elemento);
+                raiz.elemento = elemento;
+            } else {
+                raiz.esq = new No(raiz.elemento);
+                raiz.elemento = raiz.dir.elemento;
+                raiz.dir.elemento = elemento;
+            }
 
-    private No inserir(Pokemon pokemon, No bisavo, No avo, No pai) {
-        if (pai == null) {
-            return new No(pokemon);
-        }
-
-        if (pokemon.getName().compareToIgnoreCase(pai.elemento.getName()) < 0) {
-            pai.esq = inserir(pokemon, avo, pai, pai.esq);
-        } else if (pokemon.getName().compareToIgnoreCase(pai.elemento.getName()) > 0) {
-            pai.dir = inserir(pokemon, avo, pai, pai.dir);
+            raiz.esq.cor = raiz.dir.cor = false;
+        } else if (raiz.dir == null) {
+            if (compare(elemento, raiz.elemento) > 0) {
+                raiz.dir = new No(elemento);
+            } else if (compare(elemento, raiz.esq.elemento) > 0) {
+                raiz.dir = new No(raiz.elemento);
+                raiz.elemento = elemento;
+            } else {
+                raiz.dir = new No(raiz.elemento);
+                raiz.elemento = raiz.esq.elemento;
+                raiz.esq.elemento = elemento;
+            }
         } else {
-            System.out.println("Pokémon já inserido: " + pokemon.getName());
+            inserir(elemento, null, null, null, raiz);
         }
-
-        pai = balancear(bisavo, avo, pai);
-
-        return pai;
+        raiz.cor = false;
     }
 
-    private No balancear(No bisavo, No avo, No pai) {
-        if (isRed(pai.dir) && !isRed(pai.esq)) {
-            pai = rotacaoEsquerda(pai);
-        }
-        if (isRed(pai.esq) && isRed(pai.esq.esq)) {
-            pai = rotacaoDireita(pai);
-        }
-        if (isRed(pai.esq) && isRed(pai.dir)) {
-            trocaCor(pai);
-        }
+    private void inserir(Pokemon elemento, No bisAvo, No avo, No pai, No i) {
+        if (i == null) {
+            if (compare(elemento, pai.elemento) < 0) {
+                i = pai.esq = new No(elemento);
+            } else {
+                i = pai.dir = new No(elemento);
+            }
 
-        if (avo != null && isRed(pai) && isRed(avo)) {
-            if ((avo.esq == pai && avo.dir != null && isRed(avo.dir)) || 
-                (avo.dir == pai && avo.esq != null && isRed(avo.esq))) {
-                trocaCor(avo);
-                if (bisavo != null) {
-                    bisavo = balancear(null, null, bisavo);
+            if (pai.cor == true) {
+                balancear(bisAvo, avo, pai, i);
+            }
+        } else {
+            is4No(bisAvo, avo, pai, i);
+
+            if (compare(elemento, i.elemento) < 0) {
+                inserir(elemento, avo, pai, i, i.esq);
+            } else if (compare(elemento, i.elemento) > 0) {
+                inserir(elemento, avo, pai, i, i.dir);
+            } else {
+                System.out.println("Erro, elemento repetido");
+            }
+        }
+    }
+
+    private int compare(Pokemon a, Pokemon b) {
+        return a.getName().compareTo(b.getName());
+    }
+    
+    private void balancear(No bisAvo, No avo, No pai, No i) {
+        if (pai.cor == true) {
+            if (compare(pai.elemento, avo.elemento) > 0) {
+                if (compare(i.elemento, pai.elemento) > 0) {
+                    avo = rotacaoEsq(avo);
+                } else {
+                    avo.dir = rotacaoDir(pai);
+                    avo = rotacaoEsq(avo);
                 }
-            } else if (avo.esq == pai && isRed(pai.dir)) {
-                avo.esq = rotacaoEsquerda(pai);
-                avo = rotacaoDireita(avo);
-            } else if (avo.dir == pai && isRed(pai.esq)) {
-                avo.dir = rotacaoDireita(pai);
-                avo = rotacaoEsquerda(avo);
+            } else {
+                if (compare(i.elemento, pai.elemento) < 0) {
+                    avo = rotacaoDir(avo);
+                } else {
+                    avo.esq = rotacaoEsq(pai);
+                    avo = rotacaoDir(avo);
+                }
             }
         }
 
-        return pai;
+        if (bisAvo == null) {
+            raiz = avo;
+        } else if (compare(avo.elemento, bisAvo.elemento) < 0) {
+            bisAvo.esq = avo;
+        } else {
+            bisAvo.dir = avo;
+        }
+
+        avo.cor = false;
+
+        avo.esq.cor = avo.dir.cor = true;
     }
 
-    private boolean isRed(No no) {
-        return no != null && no.cor == true;
+    private No rotacaoDir(No i) {
+        No tmp = i.esq;
+        i.esq = tmp.dir;
+        tmp.dir = i;
+
+        return tmp;
     }
 
-    private No rotacaoEsquerda(No no) {
-        No aux = no.dir;
-        no.dir = aux.esq;
-        aux.esq = no;
-        aux.cor = no.cor;
-        no.cor = true;
-        return aux;
+    private No rotacaoEsq(No i) {
+        No tmp = i.dir;
+        i.dir = tmp.esq;
+        tmp.esq = i;
+
+        return tmp;
     }
 
-    private No rotacaoDireita(No no) {
-        No aux = no.esq;
-        no.esq = aux.dir;
-        aux.dir = no;
-        aux.cor = no.cor;
-        no.cor = true;
-        return aux;
-    }
+    private void is4No(No bisAvo, No avo, No pai, No i) {
+        if (i.esq != null && i.dir != null && i.esq.cor == true && i.dir.cor == true) {
+            i.cor = true;
+            i.esq.cor = i.dir.cor = false;
 
-    private void trocaCor(No no) {
-        no.cor = !no.cor;
-        if (no.esq != null) no.esq.cor = !no.esq.cor;
-        if (no.dir != null) no.dir.cor = !no.dir.cor;
+            if (i == raiz) {
+                i.cor = false;
+            } else if (pai.cor == true) {
+                balancear(bisAvo, avo, pai, i);
+            }
+        }
     }
 
     public void mostrar() {
